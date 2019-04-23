@@ -1,5 +1,6 @@
-public class Podjetje implements Searchable{
 
+
+public class Podjetje implements Searchable{
     private String ime;
     private int davcnaSt;
     private long maticnaSt;
@@ -18,7 +19,7 @@ public class Podjetje implements Searchable{
 
     @Override
     public boolean search(String s) {
-        if( s.equals(ime) || s.equals(naslov) || s.equals(tel) || s.equals(String.valueOf(getDavcnaSt()))
+        if( s.contains(ime) || s.equals(naslov) || s.equals(tel) || s.equals(String.valueOf(getDavcnaSt()))
         || s.equals(String.valueOf(getMaticnaSt()))){
             return true;
         }
@@ -28,8 +29,8 @@ public class Podjetje implements Searchable{
     @Override
     public String toString() {
         return "Ime:" + ime + ", " + naslov + "\n Davcna St.: "
-                + davcnaSt + ",Maticna St.: " + maticnaSt +
-                ",Tel: " + tel + "\n Ali je davcni zavezanec: " + davcniZavezanec + "\n";
+                + davcnaSt + ", Maticna St.: " + maticnaSt +
+                ", Tel: " + tel + "\n Ali je davcni zavezanec: " + davcniZavezanec + "\n";
     }
 
     public String getIme() {

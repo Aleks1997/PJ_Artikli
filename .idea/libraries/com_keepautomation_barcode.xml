@@ -2,8 +2,16 @@
   <library name="com.keepautomation.barcode">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/com.keepautomation.barcode.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/gson-2.8.2.jar!/" />
+      <root url="file://$PROJECT_DIR$/lib/commons-dbcp2-2.6.0" />
     </CLASSES>
-    <JAVADOC />
-    <SOURCES />
+    <JAVADOC>
+      <root url="file://$PROJECT_DIR$/lib/commons-dbcp2-2.6.0/apidocs" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/lib/commons-dbcp2-2.6.0" />
+    </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/lib/commons-dbcp2-2.6.0" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/lib/commons-dbcp2-2.6.0" recursive="false" type="SOURCES" />
   </library>
 </component>
