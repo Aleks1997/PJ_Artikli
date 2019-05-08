@@ -15,11 +15,13 @@ public class Main
     {
         disableWarning();
 /*
-        try(OutputStream output = new FileOutputStream("config.properties")){
+        try(OutputStream output = new FileOutputStream("src/config.properties")){
             Properties pro = new Properties();
-            pro.setProperty("db.url","si.um.feri.database");
-            pro.setProperty("db.user","user");
-            pro.setProperty("db.password","user");
+
+            pro.setProperty("url","jdbc:mysql://127.0.0.1:3306/");
+            pro.setProperty("strDbUser","root");
+            pro.setProperty("strDbPassword","");
+
             pro.store(output,null);
 
             System.out.println(pro);
@@ -27,9 +29,9 @@ public class Main
         }catch(IOException e){
             e.printStackTrace();
         }
-
 */
-        try(InputStream input = Main.class.getClassLoader().getResourceAsStream("config.properties")){
+/*
+        try(InputStream input = Main.class.getClassLoader().getResourceAsStream("src/config.properties")){
             Properties pro = new Properties();
             if (input == null) {
                 System.out.println("Sorry, unable to find config.properties");
@@ -37,14 +39,14 @@ public class Main
             }
 
             pro.load(input);
-            System.out.println(pro.getProperty("db.url"));
-            System.out.println(pro.getProperty("db.user"));
-            System.out.println(pro.getProperty("db.password"));
+            System.out.println(pro.getProperty("url"));
+            System.out.println(pro.getProperty("strDbUser"));
+            System.out.println(pro.getProperty("strDbPassword"));
 
         }catch(IOException e){
             e.printStackTrace();
         }
-
+*/
 
 
         Companies companies = new Companies(); //podjetja
@@ -88,6 +90,7 @@ public class Main
        //invoices.toJson();
         System.out.println(pod.search("58665765"));
 
+        DBHelper.get();
     }
 
 }
