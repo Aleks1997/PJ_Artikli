@@ -39,5 +39,9 @@ public class Invoices implements JsonSupport{
         Invoices invoices = gson.fromJson(reader,Invoices.class);
         System.out.println(invoices);
     }
+    @Override
+    public String toString() {
+        return seznam.toString();
+    }
 }
 

@@ -6,27 +6,30 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
+import static java.lang.Math.round;
+
 public class Račun implements Searchable{
     private String id;
     private Date datum;
     private String davcnaStPodjetja;
     private Podjetje izdajatelj;
     transient private Artikli artikli;
+    transient private InternalArtikli internalArtikli;
     private String skupnaCena;
     private String skupnaCenaDDV;
 
-    transient DecimalFormat numberFormat = new DecimalFormat("#.00");
+    transient private DecimalFormat numberFormat = new DecimalFormat("#.00");
 
     public String toString() {
         String out;
-        out = izdajatelj.toString() + artikli.toString() ;
+        out = id + izdajatelj.toString() + artikli.toString() +"\n"+ internalArtikli.toString() ;
         return out;
     }
 
     public Račun(){
         String UID = UUID.randomUUID().toString();
         id = UID;
-        System.out.println(UID);
+        //System.out.println(UID);
         DateFormat dF = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         datum = new Date();
         izdajatelj = getIzdajatelj();
@@ -34,7 +37,7 @@ public class Račun implements Searchable{
         System.out.println(dF.format(datum));
     }
 
-    public String izracunaj(ArrayList<Artikel> b){
+    public double izracunaj(ArrayList<Artikel> b,ArrayList<InternalArtikel> bi){
         double cena = 0;
         for(int i = 0; i <  b.size(); i++){
             String teza = b.get(i).getTeza();
@@ -45,19 +48,54 @@ public class Račun implements Searchable{
             cena +=  b.get(i).getCena() * (Double.parseDouble(teza)/1000);
             }
         }
-        return numberFormat.format(cena);
+        for(int i = 0; i <  bi.size(); i++){
+            String teza = bi.get(i).getKolicina();
+
+            if(teza.equals("0001")){
+                cena += bi.get(i).getCena();
+            }else{
+                cena += bi.get(i).getCena() * (Double.parseDouble(teza)/1000);
+            }
+        }
+        return round(cena);
     }
-    public String izracunajDDV(ArrayList<Artikel> b){
+    public double izracunajDDV(ArrayList<Artikel> b,ArrayList<InternalArtikel> bi){
         double cena = 0;
         for(int i = 0; i <  b.size(); i++){
             String teza = b.get(i).getTeza();
+
             if(teza.equals("0001")){
-                cena += b.get(i).getCenaDDV();
+                cena += b.get(i).getCena() * (b.get(i).getDavcnaStopnja() + 1);
             }else{
-            cena +=  b.get(i).getCenaDDV() * (Double.parseDouble(teza)/1000);
+            cena +=  b.get(i).getCena() * (b.get(i).getDavcnaStopnja() + 1) * (Double.parseDouble(teza)/1000);
+            }
+
+        }
+        for(int i = 0; i < bi.size();i++){
+            String teza = bi.get(i).getKolicina();
+
+            if(teza.equals("0001")){
+                cena += bi.get(i).getCena() * ( 0.095 + 1);
+            }else{
+                cena +=  bi.get(i).getCena() * ( 0.095 + 1) * (Double.parseDouble(teza)/1000);
+            }
+
+        }
+        return round(cena);
+    }
+
+    public double izracunajInternalDDV(ArrayList<InternalArtikel> b){
+        Double cena = 0.0;
+        for(int i = 0; i <  b.size(); i++){
+            String teza = b.get(i).getKolicina();
+
+            if(teza.equals("00001")){
+                cena += b.get(i).getCena() * (0.095 + 1);
+            }else{
+                cena += b.get(i).getCena() * (0.095 + 1) * (Double.parseDouble(teza)/1000);
             }
         }
-        return numberFormat.format(cena);
+        return round(cena);
     }
 
     @Override
@@ -69,7 +107,7 @@ public class Račun implements Searchable{
         return false;
     }
 
-    public void checkBarcode(String s,Artikli artikli){
+    public void checkBarcode(String s,Artikli artikli,InternalArtikli internal){
         String check = s.substring(0,2);
 
         if(check.contains("99")){
@@ -79,8 +117,9 @@ public class Račun implements Searchable{
                     String popust = s.substring(6,8);
                     double pop = Double.parseDouble(popust);
                     pop = 1 - (pop / 100);
-                    String tmp = izracunajDDV(artikli.seznam);
-                    double cena = Double.parseDouble(tmp.replace(",","."));
+                    Double tmp = izracunajDDV(artikli.seznam,internal.seznam);
+                    String tmp2 = String.valueOf(tmp);
+                    double cena = Double.parseDouble(tmp2.replace(",","."));
                     double cenaPop = cena * pop;
 
                     System.out.println("Skupna cena s popustom je " + numberFormat.format(cenaPop) + "€. ");
@@ -92,12 +131,11 @@ public class Račun implements Searchable{
             }catch (java.text.ParseException e) {
                 e.printStackTrace();
             }
-        }else if(check.length() == 13){
-            String id = s.substring(0,4);
-            String oddelek = s.substring(4,8);
-            String teza = s.substring(8,12);
+        }else if(check.contains("2")){
+            checkDigit(s);
 
-            Artikel artikel = new Artikel(id,oddelek,teza);
+            InternalArtikel artikel = new InternalArtikel(s);
+            internalArtikli.seznam.add(artikel);
 
         }else{
             System.out.println("Napacna ean koda");
@@ -155,4 +193,42 @@ public class Račun implements Searchable{
     public void setDavcnaStPodjetja(String davcnaStPodjetja) {
         this.davcnaStPodjetja = davcnaStPodjetja;
     }
+    public boolean checkDigit(String barcode) {
+
+        long[] sum = new long[barcode.length()];
+        long vsota = 0;
+        for (int i = 0; i < barcode.length(); i++) {
+            sum[i] = barcode.charAt(i) - '0';
+        }
+
+        for (int i = 0; i < 12; i++) {
+            if ((i % 2) == 0) {
+                sum[i] = sum[i];
+            } else {
+                sum[i] = sum[i] * 3;
+            }
+        }
+        for (int i = 0; i < 12; i++) {
+            vsota = vsota + sum[i];
+        }
+        while (vsota > 0) {
+            vsota = vsota - 10;
+        }
+        vsota = Math.abs(vsota);
+
+        if (sum[12] == vsota) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public InternalArtikli getInternalArtikli() {
+        return internalArtikli;
+    }
+
+    public void setInternalArtikli(InternalArtikli internalArtikli) {
+        this.internalArtikli = internalArtikli;
+    }
 }
+
